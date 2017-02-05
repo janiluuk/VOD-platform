@@ -2,6 +2,8 @@
 
 This project contains Yii 1.1 based platform for end-to-end video distribution.
 
+Features
+======
 - RESTful API (XML / Json output)
 - Transcoding capabilities
 - Youtube / TMDB integration
@@ -15,6 +17,17 @@ This project contains Yii 1.1 based platform for end-to-end video distribution.
 - Statistics dashboard, detailed sales analytics + exporting
 - Messaging support for communicating with users
 - File management
+
+
+Requirements
+======
+- PHP 5.5+
+- APC / Memcached extensions
+- Nginx / Apache
+- Mysql
+- GeoIP datafile
+- Streaming server, Wowza Media Server recommended.
+- Handbrake-cli 
 
 
 Pros
