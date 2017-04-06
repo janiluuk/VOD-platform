@@ -9,8 +9,7 @@ class ApiTvController extends WSController
 
         $unpair = Yii::app()->request->getQuery('unpair');
 
-        if ($unpair == 1 && $this->authenticated)
-        {
+        if ($unpair == 1 && $this->authenticated) {
             $session = VodPendingActivation::model()->find("t.user_id=:id and ipAddress=:ip", array(
                 "id" => $this->_user->id,
                 "ip" => $this->_ip_address,
@@ -20,8 +19,7 @@ class ApiTvController extends WSController
         }
 
         $activation = VodPendingActivation::model()->getNew($this->_useragent, $this->_ip_address);
-        if ($this->authenticated)
-        {
+        if ($this->authenticated) {
             $this->actionSession($activation);
         }
 
@@ -42,37 +40,29 @@ class ApiTvController extends WSController
 
         $model = VodPendingActivation::model();
 
-        if ($unpair == 1)
-        {
-            if ($model->unpair($id, $this->_ip_address))
-            {
+        if ($unpair == 1) {
+            if ($model->unpair($id, $this->_ip_address)) {
                 $this->sendResponse(200, "Logged out");
-            }
-            else
-            {
+            } else {
                 $this->fail("Could not unpair session this time.");
             }
         }
 
         if (!$activation = $model->find("t.activationKey=:key and t.status>0", array(
             "key" => $id,
-        )))
-        {
+        ))) {
             if (!$activation = $model->find("t.activationKey=:key", array(
                 "key" => $id,
-            )))
-            {
+            ))) {
                 $this->sendResponse(200, "Session not found");
             }
 
         }
 
-        if (empty($this->_user))
-        {
+        if (empty($this->_user)) {
             $this->_user = GonzalesUser::model()->generateAppUser($activation);
         }
-        if (empty($activation->user_id))
-        {
+        if (empty($activation->user_id)) {
             $activation->user_id = $this->_user->id;
         }
 
@@ -81,8 +71,7 @@ class ApiTvController extends WSController
         $data = $activation->getCookieData();
         $profiledata = $this->_user->getAccountData(true);
 
-        if (!empty($profiledata))
-        {
+        if (!empty($profiledata)) {
             $data["profile"] = $profiledata;
         }
 
@@ -104,13 +93,11 @@ class ApiTvController extends WSController
             'status' => VodPendingActivation::STATUS_ACTIVE,
         ));
 
-        if ($activationKey)
-        {
+        if ($activationKey) {
 
             $activationKey->userAgent = $this->_useragent;
 
-            if ($this->_user)
-            {
+            if ($this->_user) {
                 $activationKey->user_id = $this->_user->id;
             }
             $activationKey->ipAddress = $this->_ip_address;
@@ -122,14 +109,12 @@ class ApiTvController extends WSController
                 "message" => "Session pairing successful",
                 "data" => $activationKey->getCookieData(),
             ));
-        }
-        else
-        {
+        } else {
             $this->fail("Activation key not valid");
         }
     }
 
-    /*
+    /**
      * Unpair device from the web interface
      *
      * @param string email
@@ -138,26 +123,19 @@ class ApiTvController extends WSController
 
     public function actionUnpair($email, $id)
     {
-        if ($this->_user)
-        {
+        if ($this->_user) {
             $user_id = $this->_user->profile->id;
-        }
-        else if ($profile = YumProfile::model()->find("email = :email", array(
+        } else if ($profile = YumProfile::model()->find("email = :email", array(
             "email" => $email,
-        )))
-        {
+        ))) {
             $user_id = $profile->user->id;
-        }
-        else
-        {
+        } else {
             $this->response(Ticket::STATUS_USER_NOT_FOUND);
             Yii::app()->end();
         }
 
-        if ($user_id && $session = VodPendingActivation::model()->find("t.id=:id", array("id" => $id)))
-        {
-            if ($session->User->profile->email == $email)
-            {
+        if ($user_id && $session = VodPendingActivation::model()->find("t.id=:id", array("id" => $id))) {
+            if ($session->User->profile->email == $email) {
 
                 $session->delete();
                 $this->success(array(
@@ -177,19 +155,16 @@ class ApiTvController extends WSController
      *
      * @param $email string email-address
      * @param $key string key to pair the session with
-     * 
+     *
      */
 
     public function actionActivateSession($email, $key)
     {
-        if ($this->_user)
-        {
+        if ($this->_user) {
             $profile = $this->_user->profile;
-        }
-        else if (!$profile = YumProfile::model()->find("email = :email", array(
+        } else if (!$profile = YumProfile::model()->find("email = :email", array(
             "email" => $email,
-        )))
-        {
+        ))) {
             $this->response(Ticket::STATUS_USER_NOT_FOUND);
             Yii::app()->end();
         }
@@ -198,10 +173,8 @@ class ApiTvController extends WSController
             'key' => $key,
         ));
 
-        if ($activationKey)
-        {
-            if ($activationKey->status > VodPendingActivation::STATUS_ACTIVE)
-            {
+        if ($activationKey) {
+            if ($activationKey->status > VodPendingActivation::STATUS_ACTIVE) {
                 $this->success(array(
                     "status" => "error",
                     "message" => "Device already paired!",
@@ -209,8 +182,7 @@ class ApiTvController extends WSController
             }
             $activationKey->status = VodPendingActivation::STATUS_ACTIVE;
             $activationKey->user_id = $profile->user->id;
-            if ($activationKey->save())
-            {
+            if ($activationKey->save()) {
                 $this->success(array(
                     "status" => "ok",
                     "message" => "Device successfully paired!",
@@ -223,15 +195,15 @@ class ApiTvController extends WSController
 
     /**
      * Search for content. Usually used for initial content fetching
-     * 
+     *
      * Accepted query variables;
-     * int limit, 
+     * int limit,
      * short 0|1
      * string q
      * string durations,periods,genres divided by ;
-     * 
+     *
      */
-    
+
     public function actionSearch()
     {
 
@@ -241,19 +213,14 @@ class ApiTvController extends WSController
 
         $fulldetails = $short ? false : true;
 
-        foreach (array('q', 'durations', 'periods', 'genres') as $param)
-        {
+        foreach (array('q', 'durations', 'periods', 'genres') as $param) {
 
             $value = Yii::app()->request->getQuery($param, '');
-            if (!empty($value))
-            {
+            if (!empty($value)) {
                 $parts = explode(';', $value);
-                if (sizeof($parts) > 1)
-                {
+                if (sizeof($parts) > 1) {
                     $searchParams[$param] = $parts;
-                }
-                else
-                {
+                } else {
                     $searchParams[$param] = $value;
                 }
 
@@ -266,8 +233,7 @@ class ApiTvController extends WSController
 
         $activationCode = false;
 
-        if (empty($this->_session_key))
-        {
+        if (empty($this->_session_key)) {
             $activationCode = VodPendingActivation::model()->getNew($this->_useragent, $this->_ip_address);
         }
 
@@ -287,13 +253,12 @@ class ApiTvController extends WSController
 
         /* Cached Content */
 
-        if (!$this->cacheEnabled || !$data = Yii::app()->cache->get($cacheId))
-        {
+        if (!$this->cacheEnabled || !$data = Yii::app()->cache->get($cacheId)) {
 
             $dataProvider = new CActiveDataProvider(VodTitle::model()->with_distributor($this->_distributor->id)->approved()->newest()->with_title($searchParams["q"])->with_periods($searchParams["periods"])->with_category($searchParams["genres"])->with_durations($searchParams["durations"]), array(
                 'pagination' => array(
                     'pageSize' => $limit,
-                    'offset' => $offset, 
+                    'offset' => $offset,
                 ),
             ));
 
@@ -301,16 +266,14 @@ class ApiTvController extends WSController
 
             $data = array();
 
-            foreach ((array) $models as $model)
-            {
+            foreach ((array) $models as $model) {
                 $data[] = array(
                     "id" => $model->id,
                     "film" => $model->getSummaryData($fulldetails, $this->_distributor->id, true),
                 );
             }
 
-            if ($this->cacheEnabled)
-            {
+            if ($this->cacheEnabled) {
                 Yii::app()->cache->set($cacheId, $data, 60 * 60 * 96, $chainedCache);
             }
 
@@ -318,19 +281,16 @@ class ApiTvController extends WSController
 
         /* Cached Genres */
 
-        if (!$this->cacheEnabled || !$genrelist = Yii::app()->cache->get($this->_distributor->id . "_genrelist"))
-        {
+        if (!$this->cacheEnabled || !$genrelist = Yii::app()->cache->get($this->_distributor->id . "_genrelist")) {
             $genres = VodGenre::model()->active()->with_distributor($this->_distributor->id)->getGenres();
             $lists = VodGenre::model()->active()->with_distributor($this->_distributor->id)->getLists();
             $i = 0;
-            foreach ((array) $lists as $list)
-            {
+            foreach ((array) $lists as $list) {
                 $lists[$i]['type'] = "list";
                 $i++;
             }
             $genrelist = array_merge((array) $lists, $genres);
-            if ($this->cacheEnabled)
-            {
+            if ($this->cacheEnabled) {
                 Yii::app()->cache->set($this->_distributor->id . "_genrelist", $genrelist, 60 * 60 * 72, $genreDependency);
             }
 
